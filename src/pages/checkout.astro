@@ -46,7 +46,7 @@ if (Astro.request.method === 'POST' && cartItems.length > 0) {
           description: item.description,
           images: [`http://localhost:4322${item.image}`],
         },
-        unit_amount: item.price,
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
@@ -128,14 +128,14 @@ if (Astro.request.method === 'POST' && cartItems.length > 0) {
                             <h3 class="font-medium text-gray-900">${item.name}</h3>
                             <p class="text-sm text-gray-600">Quantity: ${item.quantity}</p>
                           </div>
-                          <p class="font-medium text-gray-900">$${(item.price / 100 * item.quantity).toFixed(2)}</p>
+                          <p class="font-medium text-gray-900">$${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
                       `).join('')}
                       
                       <div class="border-t pt-4">
                         <div class="flex justify-between items-center">
                           <span class="font-semibold text-gray-900">Total</span>
-                          <span class="font-semibold text-gray-900">$${(totalAmount / 100).toFixed(2)}</span>
+                          <span class="font-semibold text-gray-900">$${totalAmount.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
