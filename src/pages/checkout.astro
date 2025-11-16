@@ -154,7 +154,7 @@ if (Astro.request.method === 'POST' && cartItems.length > 0) {
                   
                   <!-- Checkout Form -->
                   <div class="space-y-6">
-                    <form method="POST" class="space-y-6">
+                    <form id="checkout-form" class="space-y-6">
                       <div>
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Shipping Information</h2>
                         <p class="text-sm text-gray-600 mb-4">
@@ -185,6 +185,26 @@ if (Astro.request.method === 'POST' && cartItems.length > 0) {
                   </div>
                 </div>
               `;
+
+              const form = document.getElementById('checkout-form');
+              form?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                  const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: cartItems }),
+                  });
+                  const data = await response.json();
+                  if (data.url) {
+                    window.location.href = data.url;
+                  } else {
+                    alert('Failed to start checkout. Please try again.');
+                  }
+                } catch (err) {
+                  alert('Checkout error. Please try again.');
+                }
+              });
             } else {
               checkoutContent.innerHTML = `
                 <div class="text-center py-12">
