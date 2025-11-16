@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/ui/Header.astro';
+import Hero from '../components/ui/Hero.astro';
+import FeaturedProducts from '../components/features/product/FeaturedProducts.astro';
+---
+
+<Layout title="BRAVE - Premium Leather Goods & Accessories">
+  <Header />
+  <main>
+    <Hero 
+      title="Handcrafted Leather Goods"
+      subtitle="Premium quality leather accessories made with traditional craftsmanship and modern design"
+      ctaText="Shop Collection"
+      backgroundImage="/images/hero-bg.jpg"
+    />
+    <FeaturedProducts />
+  </main>
+</Layout>

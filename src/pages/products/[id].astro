@@ -1,0 +1,139 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/ui/Header.astro';
+import { getProductById, getAllProducts } from '../data/products.js';
+
+export function getStaticPaths() {
+  const products = getAllProducts();
+  return products.map((product) => ({
+    params: { id: product.id }
+  }));
+}
+
+const { id } = Astro.params;
+const product = getProductById(id as string);
+
+if (!product) {
+  return Astro.redirect('/404');
+}
+---
+
+<Layout title={`${product.name} - BRAVE`}>
+  <Header />
+  <main class="pt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Product Images -->
+        <div class="space-y-4">
+          <div class="aspect-square bg-gray-100 overflow-hidden">
+            <img 
+              src={product.image} 
+              alt={product.name}
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+        </div>
+        
+        <!-- Product Info -->
+        <div class="space-y-6">
+          <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">{product.name}</h1>
+            <p class="text-2xl font-semibold text-gray-900">${product.price}</p>
+          </div>
+          
+          <div class="prose prose-lg text-gray-600">
+            <p>{product.description}</p>
+          </div>
+          
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Product Details</h3>
+            <ul class="space-y-2">
+              {product.details.map((detail: string) => (
+                <li class="flex items-center text-gray-600">
+                  <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div class="space-y-4">
+            <button 
+              id="add-to-cart-btn"
+              class="w-full bg-black text-white py-4 font-semibold hover:bg-gray-800 transition-colors block text-center cursor-pointer"
+              data-product-id={product.id}
+              data-product-name={product.name}
+              data-product-price={product.price}
+              data-product-image={product.image}
+            >
+              Add to Cart
+            </button>
+            <a 
+              href={`/checkout-stripe?product=${product.id}&quantity=1`}
+              class="w-full border-2 border-black text-black py-4 font-semibold hover:bg-black hover:text-white transition-colors block text-center"
+            >
+              Buy Now
+            </a>
+          </div>
+          
+          <script>
+            import { addToCart } from '../../components/features/cart/cartStore';
+            
+            document.getElementById('add-to-cart-btn')?.addEventListener('click', function(e) {
+              e.preventDefault();
+              const button = e.target as HTMLButtonElement;
+              const productId = button.dataset.productId;
+              const productName = button.dataset.productName;
+              const productPrice = parseFloat(button.dataset.productPrice || '0');
+              const productImage = button.dataset.productImage;
+              
+              if (productId && productName && productImage) {
+                addToCart({
+                  id: productId,
+                  name: productName,
+                  price: productPrice,
+                  image: productImage
+                });
+                
+                // Show feedback
+                const originalText = button.textContent;
+                button.textContent = 'Added to Cart!';
+                button.style.backgroundColor = '#10b981';
+                
+                setTimeout(() => {
+                  button.textContent = originalText;
+                  button.style.backgroundColor = '';
+                }, 1500);
+              }
+            });
+          </script>
+          
+          <div class="border-t pt-6">
+            <div class="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <svg class="w-8 h-8 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <p class="text-sm text-gray-600">Quality Guaranteed</p>
+              </div>
+              <div>
+                <svg class="w-8 h-8 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm text-gray-600">Fast Shipping</p>
+              </div>
+              <div>
+                <svg class="w-8 h-8 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <p class="text-sm text-gray-600">Handcrafted with Love</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>

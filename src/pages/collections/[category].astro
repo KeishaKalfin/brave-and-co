@@ -1,0 +1,99 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/ui/Header.astro';
+import ProductCard from '../../components/ui/ProductCard.astro';
+import { getAllProducts, getProductsByCategory } from '../data/products.js';
+
+export function getStaticPaths() {
+  return [
+    { params: { category: 'all' } },
+    { params: { category: 'clutches' } },
+    { params: { category: 'bags' } },
+    { params: { category: 'wallets' } },
+    { params: { category: 'accessories' } }
+  ];
+}
+
+const { category = 'all' } = Astro.params;
+
+const allProducts = getAllProducts();
+
+const filteredProducts = category === 'all' 
+  ? allProducts 
+  : getProductsByCategory(category);
+
+const pageTitle = category === 'all' ? 'All Products' : category.charAt(0).toUpperCase() + category.slice(1);
+---
+
+<Layout title={`${pageTitle} - BRAVE`}>
+  <Header />
+  <main class="pt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">{pageTitle}</h1>
+        <p class="text-lg text-gray-600">
+          Discover our collection of handcrafted leather goods
+        </p>
+      </div>
+      
+      <div class="flex flex-wrap gap-4 mb-8">
+        <a 
+          href="/collections/all" 
+          class={`px-4 py-2 font-medium transition-colors ${
+            category === 'all' 
+              ? 'bg-black text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All Products
+        </a>
+        <a 
+          href="/collections/clutches" 
+          class={`px-4 py-2 font-medium transition-colors ${
+            category === 'clutches' 
+              ? 'bg-black text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Clutches
+        </a>
+        <a 
+          href="/collections/bags" 
+          class={`px-4 py-2 font-medium transition-colors ${
+            category === 'bags' 
+              ? 'bg-black text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Bags
+        </a>
+        <a 
+          href="/collections/wallets" 
+          class={`px-4 py-2 font-medium transition-colors ${
+            category === 'wallets' 
+              ? 'bg-black text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Wallets
+        </a>
+        <a 
+          href="/collections/accessories" 
+          class={`px-4 py-2 font-medium transition-colors ${
+            category === 'accessories' 
+              ? 'bg-black text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Accessories
+        </a>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {filteredProducts.map((product) => (
+          <ProductCard {...product} />
+        ))}
+      </div>
+    </div>
+  </main>
+</Layout>

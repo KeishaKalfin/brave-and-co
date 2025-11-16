@@ -1,0 +1,67 @@
+---
+export interface Props {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  description?: string;
+  category?: string;
+  onSale?: boolean;
+  salePrice?: number;
+}
+
+const { 
+  id, 
+  name, 
+  price, 
+  image, 
+  description = "", 
+  onSale = false,
+  salePrice = 0
+} = Astro.props;
+
+const displayPrice = onSale && salePrice ? salePrice : price;
+const originalPrice = onSale ? price : null;
+---
+
+<a href={`/products/${id}`} class="group block cursor-pointer card-hover">
+  <div class="relative overflow-hidden bg-gray-100 aspect-square mb-4">
+    <img 
+      src={image} 
+      alt={name}
+      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+    />
+    {onSale && (
+      <div class="absolute top-4 left-4 bg-black text-white px-3 py-1 text-sm font-semibold">
+        SALE
+      </div>
+    )}
+    <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+    <div class="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <button class="w-full bg-white text-black py-3 font-semibold hover:bg-gray-100 transition-colors">
+        View Details
+      </button>
+    </div>
+  </div>
+  
+  <div class="space-y-2">
+    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-gray-600 transition-colors">
+      {name}
+    </h3>
+    {description && (
+      <p class="text-sm text-gray-600 line-clamp-2">
+        {description}
+      </p>
+    )}
+    <div class="flex items-center space-x-2">
+      <span class="text-lg font-bold text-gray-900">
+        ${displayPrice}
+      </span>
+      {originalPrice && (
+        <span class="text-sm text-gray-500 line-through">
+          ${originalPrice}
+        </span>
+      )}
+    </div>
+  </div>
+</a>

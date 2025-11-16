@@ -1,0 +1,60 @@
+---
+export interface Props {
+  title?: string;
+}
+
+const { title = "BRAVE" } = Astro.props;
+---
+
+<header class="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex-shrink-0">
+        <a href="/" class="text-2xl font-bold text-gray-900 tracking-tight">
+          {title}
+        </a>
+      </div>
+      
+      <div class="hidden md:block">
+        <div class="ml-10 flex items-baseline space-x-8">
+          <a href="/collections/all" class="text-gray-900 hover:text-gray-600 transition-colors font-medium">
+            Shop All
+          </a>
+          <a href="/collections/clutches" class="text-gray-900 hover:text-gray-600 transition-colors font-medium">
+            Clutches
+          </a>
+          <a href="/collections/wallets" class="text-gray-900 hover:text-gray-600 transition-colors font-medium">
+            Wallets
+          </a>
+          <a href="/collections/accessories" class="text-gray-900 hover:text-gray-600 transition-colors font-medium">
+            Accessories
+          </a>
+          <a href="/about" class="text-gray-900 hover:text-gray-600 transition-colors font-medium">
+            About
+          </a>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <button class="text-gray-900 hover:text-gray-600 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </button>
+        
+        <!-- Cart Button - SolidJS Component -->
+        <div id="cart-button-container"></div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  import { render } from 'solid-js/web';
+  import CartButton from '../features/cart/CartButton';
+  
+  const container = document.getElementById('cart-button-container');
+  if (container) {
+    render(CartButton, container);
+  }
+</script>

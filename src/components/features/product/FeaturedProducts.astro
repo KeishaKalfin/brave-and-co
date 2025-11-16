@@ -1,0 +1,48 @@
+---
+import ProductCard from '../../ui/ProductCard.astro';
+import { getAllProducts } from '../../../pages/data/products.js';
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+}
+
+const { 
+  title = "Featured Collection", 
+  subtitle = "Discover our handcrafted leather goods"
+} = Astro.props;
+
+const allProducts = getAllProducts();
+const featuredProducts = allProducts.slice(0, 4);
+---
+
+<section class="py-20 bg-white animate-fade-in">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        {title}
+      </h2>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        {subtitle}
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      {featuredProducts.map((product) => (
+        <ProductCard {...product} />
+      ))}
+    </div>
+    
+    <div class="text-center mt-12">
+      <a 
+        href="/collections/all"
+        class="btn-primary inline-flex items-center"
+      >
+        View All Products
+        <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>

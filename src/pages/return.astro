@@ -1,0 +1,126 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/ui/Header.astro';
+
+const url = new URL(Astro.request.url);
+const sessionId = url.searchParams.get('session_id');
+
+let session = null;
+let error = null;
+
+if (sessionId) {
+  try {
+    const stripe = await import('stripe');
+    const stripeInstance = new stripe.default(process.env.STRIPE_SECRET_KEY || '');
+    
+    session = await stripeInstance.checkout.sessions.retrieve(sessionId);
+    
+    // Check if payment was successful
+    if (session.payment_status !== 'paid') {
+      error = 'Payment was not completed successfully.';
+    }
+  } catch (err) {
+    console.error('Stripe session retrieval error:', err);
+    error = 'Unable to retrieve payment information. Please contact support.';
+  }
+} else {
+  error = 'No session ID provided.';
+}
+---
+
+<Layout title="Payment Complete - BRAVE">
+  <Header />
+  <main class="pt-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {error ? (
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Payment Failed</h1>
+          <p class="text-lg text-gray-600 mb-8">{error}</p>
+          <div class="space-y-4">
+            <a 
+              href="/checkout"
+              class="inline-block bg-black text-white px-6 py-3 font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Try Again
+            </a>
+            <br />
+            <a 
+              href="/contact"
+              class="text-black font-medium hover:underline"
+            >
+              Contact Support
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div class="text-center">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Payment Successful!</h1>
+          <p class="text-lg text-gray-600 mb-8">
+            Thank you for your purchase. Your order has been confirmed and will be processed shortly.
+          </p>
+          
+          {session && (
+            <div class="bg-gray-50 rounded-lg p-6 mb-8 text-left max-w-md mx-auto">
+              <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Details</h2>
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Order ID:</span>
+                  <span class="font-medium">{session.id}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Amount:</span>
+                  <span class="font-medium">${session.amount_total ? (session.amount_total / 100).toFixed(2) : '0.00'}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Email:</span>
+                  <span class="font-medium">{session.customer_details?.email}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Status:</span>
+                  <span class="font-medium text-green-600">Paid</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div class="space-y-4">
+            <a 
+              href="/collections/all"
+              class="inline-block bg-black text-white px-6 py-3 font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Continue Shopping
+            </a>
+            <br />
+            <a 
+              href="/account"
+              class="text-black font-medium hover:underline"
+            >
+              View Order History
+            </a>
+          </div>
+          
+          <div class="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <p class="text-sm text-blue-700">
+                You'll receive an email confirmation shortly with your order details and tracking information.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </main>
+</Layout>

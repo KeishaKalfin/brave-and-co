@@ -1,0 +1,178 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/ui/Header.astro';
+
+const url = new URL(Astro.request.url);
+const productId = url.searchParams.get('product');
+const quantity = parseInt(url.searchParams.get('quantity') || '1');
+
+// Create Stripe checkout session
+let error = null;
+
+if (productId && Astro.request.method === 'POST') {
+  try {
+    const stripe = await import('stripe');
+    const stripeInstance = new stripe.default(process.env.STRIPE_SECRET_KEY || '');
+    
+    const stripePriceMap = {
+      "1": "price_1SU8JZKJcXfzZs7deTgNi0YG", // BRV Clutch - Black
+      "2": "price_1SU8JbKJcXfzZs7dpcgEkKga", // VAMP Mix - Tobacco
+      // Add more mappings as needed
+    };
+    
+    const stripePriceId = stripePriceMap[productId as keyof typeof stripePriceMap];
+    
+    if (!stripePriceId) {
+      throw new Error(`No Stripe price ID found for product ${productId}`);
+    }
+    
+    const session = await stripeInstance.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: stripePriceId,
+          quantity: quantity,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${Astro.url.origin}/return?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${Astro.url.origin}/checkout-stripe?cancelled=true`,
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA', 'GB', 'AU'],
+      },
+    });
+    
+    // Redirect to Stripe Checkout
+    if (session.url) {
+      return Astro.redirect(session.url);
+    }
+    
+  } catch (err) {
+    console.error('Stripe error:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+    error = `Failed to create checkout session: ${errorMessage}. Please try again.`;
+  }
+}
+
+// Product data for display
+const products = {
+  "1": {
+    name: "BRV Clutch - Black",
+    price: 28500,
+    image: "/images/products/brv-clutch-black.jpg",
+    description: "Our signature BRV clutch in premium black leather."
+  },
+  "2": {
+    name: "VAMP Mix - Tobacco",
+    price: 32500,
+    image: "/images/products/vamp-mix-tobacco.jpg",
+    description: "The VAMP Mix in rich tobacco leather combines traditional craftsmanship with contemporary style."
+  }
+};
+
+const product = productId ? products[productId as keyof typeof products] : null;
+const totalAmount = product ? product.price * quantity : 0;
+---
+
+<Layout title="Checkout - BRAVE">
+  <Header />
+  <main class="pt-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-8">Checkout</h1>
+      
+      {error && (
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          {error}
+        </div>
+      )}
+      
+      {product ? (
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Order Summary -->
+          <div class="space-y-6">
+            <div class="bg-gray-50 rounded-lg p-6">
+              <h2 class="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
+              
+              <div class="flex items-center space-x-4 mb-4">
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  class="w-16 h-16 object-cover rounded"
+                />
+                <div class="flex-1">
+                  <h3 class="font-medium text-gray-900">{product.name}</h3>
+                  <p class="text-sm text-gray-600">Quantity: {quantity}</p>
+                </div>
+                <p class="font-medium text-gray-900">${(product.price / 100 * quantity).toFixed(2)}</p>
+              </div>
+              
+              <div class="border-t pt-4">
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold text-gray-900">Total</span>
+                  <span class="font-semibold text-gray-900">${(totalAmount / 100).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+                <p class="text-sm text-blue-700">
+                  You'll be redirected to Stripe's secure checkout page to complete your purchase.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Checkout Form -->
+          <div class="space-y-6">
+            <form method="POST" class="space-y-6">
+              <div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Shipping Information</h2>
+                <p class="text-sm text-gray-600 mb-4">
+                  Shipping details will be collected during the secure checkout process.
+                </p>
+              </div>
+              
+              <div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Method</h2>
+                <p class="text-sm text-gray-600 mb-4">
+                  You'll enter your payment details securely through Stripe's encrypted checkout.
+                </p>
+              </div>
+              
+              <button 
+                type="submit"
+                class="w-full bg-black text-white py-4 font-semibold hover:bg-gray-800 transition-colors"
+              >
+                Proceed to Payment
+              </button>
+            </form>
+            
+            <div class="text-center">
+              <p class="text-sm text-gray-600">
+                By proceeding, you agree to our Terms of Service and Privacy Policy.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+          </svg>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
+          <p class="text-gray-600 mb-6">Add some products to your cart to continue checkout.</p>
+          <a 
+            href="/collections/all"
+            class="inline-block bg-black text-white px-6 py-3 font-semibold hover:bg-gray-800 transition-colors"
+          >
+            Continue Shopping
+          </a>
+        </div>
+      )}
+    </div>
+  </main>
+</Layout>
